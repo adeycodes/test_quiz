@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Year 8 Mathematics - Interactive Examination</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inter for standard text, Kalam for handwritten math working, Quicksand for playful headers -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kalam:wght@400;700&family=Quicksand:wght@600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Add Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            scroll-behavior: smooth; 
+            background-color: #f8fafc;
+        }
+        
+        .font-quicksand { font-family: 'Quicksand', sans-serif; }
+        
+        .question-card { 
+            transition: all 0.3s ease; 
+        }
+        
+        input[type="radio"] { 
+            accent-color: #8b5cf6; /* Fun purple */
+            width: 1.4rem; 
+            height: 1.4rem; 
+            cursor: pointer;
+        }
+
+        .option-label {
+            transition: all 0.2s ease;
+        }
+        .option-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        /* Notebook-style explanation box */
+        .handwriting {
+            font-family: 'Kalam', cursive;
+            color: #0369a1; /* Dark blue ink */
+            font-size: 1.35rem;
+            line-height: 28px;
+            padding-top: 4px;
+        }
+
+        .explanation-box {
+            display: none;
+            background-color: #fefce8; /* Light yellow notebook paper */
+            background-image: repeating-linear-gradient(transparent, transparent 27px, #93c5fd 27px, #93c5fd 28px);
+            border: 2px solid #fde047;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.05);
+            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.9) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Fun background for the main exam */
+        .exam-bg {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 100%);
+        }
+
+        /* Print styles */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .exam-bg { background: white; }
+            .question-card { border: 2px solid #e2e8f0; box-shadow: none; padding: 1rem; margin-bottom: 1rem; page-break-inside: avoid; }
+            #exam-container { display: block !important; }
+            #start-screen { display: none !important; }
+            .explanation-box { display: block !important; background-image: none; border-left: 4px solid #3b82f6; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen">
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
+        <div class="bg-white/80 backdrop-blur-lg max-w-lg w-full rounded-[2rem] shadow-2xl p-8 md:p-10 text-center border-4 border-white">
+            <div class="flex justify-center gap-4 mb-6 animate-bounce">
+                <i data-lucide="ruler" class="w-14 h-14 text-indigo-500"></i>
+                <i data-lucide="rocket" class="w-14 h-14 text-fuchsia-500"></i>
+                <i data-lucide="brain-circuit" class="w-14 h-14 text-purple-500"></i>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-quicksand font-bold text-indigo-900 mb-2">Year 8 Math Challenge!</h1>
+            <p class="text-indigo-600 font-medium mb-6">Let's crush some inequalities, expansions, and bearings.</p>
+            
+            <div class="space-y-3 text-left bg-white/60 p-5 rounded-2xl mb-8 text-sm md:text-base text-slate-700 shadow-inner">
+                <p class="flex items-center gap-3"><i data-lucide="clock" class="w-5 h-5 text-indigo-500 shrink-0"></i> <strong>Time limit:</strong> 1 Hour</p>
+                <p class="flex items-center gap-3"><i data-lucide="target" class="w-5 h-5 text-rose-500 shrink-0"></i> <strong>Questions:</strong> 40 Multiple Choice</p>
+                <p class="flex items-center gap-3 text-indigo-700 font-semibold"><i data-lucide="sparkles" class="w-5 h-5 text-amber-500 shrink-0"></i> Fun teacher notes reveal after you finish!</p>
+            </div>
+
+            <div class="relative mb-6">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i data-lucide="user" class="w-6 h-6 text-indigo-300"></i>
+                </div>
+                <input type="text" id="student-name" placeholder="What's your name?" class="w-full pl-12 pr-5 py-4 rounded-xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 outline-none text-lg font-medium transition-all text-center" required>
+            </div>
+            
+            <button onclick="startExam()" class="w-full flex items-center justify-center gap-3 font-quicksand bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white font-bold text-xl py-4 px-6 rounded-2xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                Let's Go! <i data-lucide="gamepad-2" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Exam Container -->
+    <div id="exam-container" class="hidden exam-bg min-h-screen pb-24">
+        
+        <!-- Sticky Header & Timer -->
+        <div class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b-2 border-indigo-100 p-4 shadow-sm flex justify-between items-center no-print">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-100 p-2 rounded-lg text-indigo-600">
+                    <i data-lucide="lightbulb" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 class="font-quicksand font-bold text-indigo-900 text-lg">Math Challenge</h2>
+                    <p id="display-name" class="text-xs font-semibold text-indigo-500 uppercase tracking-wide flex items-center gap-1"></p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 md:gap-6">
+                <div class="text-right bg-white px-4 py-1.5 rounded-xl border-2 border-indigo-50 shadow-sm">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Time Remaining</p>
+                    <p id="timer" class="text-2xl font-quicksand font-bold text-violet-600">60:00</p>
+                </div>
+                <!-- Top subtle submit button -->
+                <button id="submit-btn-top" onclick="submitExam()" class="hidden md:block bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-4 py-2 rounded-xl font-bold transition-colors">
+                    Finish
+                </button>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto p-4 md:p-8 space-y-8 mt-4">
+            
+            <!-- Fun Header -->
+            <div class="bg-white p-8 rounded-3xl shadow-sm border-2 border-indigo-50 text-center relative overflow-hidden mb-8">
+                <i data-lucide="calculator" class="absolute -right-4 -top-4 w-32 h-32 opacity-5 text-indigo-900"></i>
+                <i data-lucide="ruler" class="absolute -left-4 -bottom-4 w-32 h-32 opacity-5 text-indigo-900"></i>
+                
+                <h1 class="text-3xl md:text-4xl font-quicksand font-extrabold text-indigo-900 tracking-tight">Third Term Examination</h1>
+                <h2 class="text-xl font-bold mt-2 text-fuchsia-600">Year 8 Mathematics</h2>
+                <div class="inline-flex justify-center gap-6 mt-4 px-6 py-2 bg-indigo-50 rounded-full text-sm font-bold text-indigo-800">
+                    <p>Total Marks: 40</p>
+                    <p>•</p>
+                    <p>Take your time!</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Question Container -->
+            <div id="questions-wrapper" class="space-y-8">
+                <!-- Javascript will inject questions here -->
+            </div>
+
+            <!-- BOTTOM SUBMIT BUTTON (NEW!) -->
+            <div id="bottom-submit-section" class="mt-16 text-center pb-12 pt-8 no-print border-t-2 border-indigo-200/50">
+                <h3 class="flex justify-center items-center gap-3 text-2xl font-quicksand font-bold text-indigo-900 mb-6">
+                    All done? Awesome job! <i data-lucide="party-popper" class="w-8 h-8 text-emerald-500"></i>
+                </h3>
+                <button onclick="submitExam()" class="flex items-center justify-center gap-3 mx-auto font-quicksand bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-2xl py-5 px-12 rounded-full shadow-[0_10px_20px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_30px_rgba(16,185,129,0.4)] transform hover:-translate-y-2 transition-all duration-300">
+                    Submit My Test <i data-lucide="rocket" class="w-7 h-7"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Results Modal -->
+        <div id="results-modal" class="fixed inset-0 bg-indigo-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+            <div class="bg-white max-w-lg w-full rounded-[2.5rem] shadow-2xl p-8 md:p-10 text-center border-4 border-indigo-100">
+                <div id="modal-emoji" class="flex justify-center mb-4 animate-bounce"></div>
+                <h2 class="text-3xl font-quicksand font-extrabold text-indigo-900 mb-2">Test Complete!</h2>
+                <p class="text-slate-500 font-medium mb-6">Here is your awesome final score.</p>
+                
+                <div class="relative inline-block mb-4">
+                    <svg class="w-40 h-40 transform -rotate-90">
+                        <circle cx="80" cy="80" r="70" stroke="#e0e7ff" stroke-width="12" fill="none" />
+                        <circle id="score-ring" cx="80" cy="80" r="70" stroke="#8b5cf6" stroke-width="12" fill="none" stroke-dasharray="440" stroke-dashoffset="440" class="transition-all duration-1000 ease-out"/>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="text-4xl font-black text-indigo-700" id="score-display">0/40</div>
+                    </div>
+                </div>
+                
+                <p id="percentage-display" class="font-quicksand font-bold text-2xl text-fuchsia-600 mb-6"></p>
+
+                <div class="bg-amber-50 p-4 rounded-2xl border-2 border-amber-200 mb-8 text-left">
+                    <p class="flex gap-3 text-amber-800 text-sm font-medium">
+                        <i data-lucide="lightbulb" class="w-6 h-6 shrink-0 mt-0.5"></i>
+                        <span><strong>Next step:</strong> Close this window and scroll through your test. Your teacher's secret notebook explanations have been unlocked for every question!</span>
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="closeModal()" class="flex-1 flex justify-center items-center gap-2 font-quicksand bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-4 rounded-2xl transition-all shadow-md">
+                        Review My Answers <i data-lucide="eye" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="window.print()" class="flex-1 flex justify-center items-center gap-2 font-quicksand bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-2xl transition-all border-2 border-slate-200">
+                        Save as PDF <i data-lucide="printer" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Data & Logic -->
+    <script>
+        // Number lines and geometric SVGs stored as strings to inject dynamically
+        const svgNumberLine1 = `
+            <svg width="400" height="80" viewBox="0 0 400 80" class="max-w-full mx-auto my-4 block drop-shadow-sm">
+                <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155" /></marker></defs>
+                <line x1="20" y1="50" x2="380" y2="50" stroke="#334155" stroke-width="2" marker-end="url(#ah)" marker-start="url(#ah)" />
+                <g text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="14" fill="#334155">
+                    <line x1="60" y1="45" x2="60" y2="55" stroke="#334155" stroke-width="2"/><text x="60" y="72">-2</text>
+                    <line x1="160" y1="45" x2="160" y2="55" stroke="#334155" stroke-width="2"/><text x="160" y="72">0</text>
+                    <line x1="260" y1="45" x2="260" y2="55" stroke="#334155" stroke-width="2"/><text x="260" y="72">2</text>
+                    <line x1="360" y1="45" x2="360" y2="55" stroke="#334155" stroke-width="2"/><text x="360" y="72">4</text>
+                </g>
+                <line x1="260" y1="20" x2="40" y2="20" stroke="#8b5cf6" stroke-width="4" marker-end="url(#ah)"/>
+                <circle cx="260" cy="20" r="7" fill="#8b5cf6"/>
+                <line x1="260" y1="20" x2="260" y2="50" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="4,2"/>
+            </svg>`;
+
+        const svgNumberLine2 = `
+            <svg width="400" height="80" viewBox="0 0 400 80" class="max-w-full mx-auto my-4 block drop-shadow-sm">
+                <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155" /></marker></defs>
+                <line x1="20" y1="50" x2="380" y2="50" stroke="#334155" stroke-width="2" marker-end="url(#ah)" marker-start="url(#ah)" />
+                <g text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="14" fill="#334155">
+                    <line x1="60" y1="45" x2="60" y2="55" stroke="#334155" stroke-width="2"/><text x="60" y="72">-3</text>
+                    <line x1="160" y1="45" x2="160" y2="55" stroke="#334155" stroke-width="2"/><text x="160" y="72">-1</text>
+                    <line x1="260" y1="45" x2="260" y2="55" stroke="#334155" stroke-width="2"/><text x="260" y="72">1</text>
+                    <line x1="360" y1="45" x2="360" y2="55" stroke="#334155" stroke-width="2"/><text x="360" y="72">3</text>
+                </g>
+                <line x1="160" y1="20" x2="360" y2="20" stroke="#f43f5e" stroke-width="4" marker-end="url(#ah)"/>
+                <circle cx="160" cy="20" r="6" fill="white" stroke="#f43f5e" stroke-width="3"/>
+                <line x1="160" y1="25" x2="160" y2="50" stroke="#f43f5e" stroke-width="2" stroke-dasharray="4,2"/>
+            </svg>`;
+
+        const svgBearing1 = `
+            <svg width="200" height="150" viewBox="0 0 200 150" class="mx-auto my-4 block drop-shadow-sm">
+                <defs><marker id="ah" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155" /></marker></defs>
+                <line x1="100" y1="100" x2="100" y2="20" stroke="#334155" stroke-width="3" marker-end="url(#ah)"/>
+                <text x="95" y="15" font-weight="bold" font-family="sans-serif">N</text>
+                <circle cx="100" cy="100" r="5" fill="#3b82f6"/><text x="75" y="115" font-weight="bold" font-size="18" font-family="sans-serif">P</text>
+                <line x1="100" y1="100" x2="172" y2="66" stroke="#3b82f6" stroke-width="3" marker-end="url(#ah)"/>
+                <text x="180" y="60" font-weight="bold" font-size="18" font-family="sans-serif">Q</text>
+                <path d="M 100 60 A 40 40 0 0 1 128 83" fill="none" stroke="#f43f5e" stroke-width="3"/>
+                <text x="115" y="52" fill="#f43f5e" font-weight="bold" font-size="16" font-family="sans-serif">65°</text>
+            </svg>`;
+
+        // Full dataset of 40 questions spanning all required topics
+        const examQuestions = [
+            // --- INEQUALITIES ---
+            { q: "Which of the following is the solution to the inequality 3x − 4 ≥ 11?", options: ["x ≥ 5", "x ≤ 5", "x ≥ 7", "x > 5"], correct: 0,
+              exp: "3x - 4 ≥ 11<br>Add 4 to both sides:<br>3x ≥ 11 + 4<br>3x ≥ 15<br>Divide by 3:<br>x ≥ 5" },
+            { q: "If −2x < 8, the solution set is:", options: ["x < −4", "x > −4", "x < 4", "x > 4"], correct: 1,
+              exp: "-2x < 8<br>Divide by -2.<br>⚠️ Remember to flip the inequality sign when dividing by a negative number!<br>x > 8 ÷ -2<br>x > -4" },
+            { q: `The number line below represents which inequality? ${svgNumberLine1}`, options: ["x > 2", "x ≥ 2", "x ≤ 2", "x < 2"], correct: 2,
+              exp: "The dot at 2 is solid, meaning 'equal to' (≤ or ≥).<br>The arrow points to the left, which means 'less than'.<br>Therefore, x ≤ 2." },
+            { q: `Which inequality is shown on the number line below? ${svgNumberLine2}`, options: ["x ≥ −1", "x > −1", "x < −1", "x ≤ −1"], correct: 1,
+              exp: "The dot at -1 is hollow (open), meaning strictly 'greater' or 'less' (> or <).<br>The arrow points to the right, which means 'greater than'.<br>Therefore, x > -1." },
+            { q: "Solve: 5 − 2x > 1", options: ["x > 2", "x < 2", "x > −2", "x < −2"], correct: 1,
+              exp: "5 - 2x > 1<br>Subtract 5 from both sides:<br>-2x > 1 - 5<br>-2x > -4<br>Divide by -2 (Flip the sign!):<br>x < 2" },
+            { q: "Which integer satisfies both x > −3 AND x < 2 ?", options: ["−4", "0", "3", "2"], correct: 1,
+              exp: "The range is -3 < x < 2.<br>Integers in this range are: -2, -1, 0, 1.<br>Looking at the options, only '0' fits this list." },
+            { q: "The largest integer that satisfies 4x + 1 ≤ 17 is:", options: ["3", "4", "5", "6"], correct: 1,
+              exp: "4x + 1 ≤ 17<br>4x ≤ 17 - 1<br>4x ≤ 16<br>x ≤ 4<br>The integers less than or equal to 4 are ..., 2, 3, 4. The largest is 4." },
+            
+            // --- EXPANSIONS & FACTORISATION ---
+            { q: "Expand: 3(2x − 5)", options: ["6x − 5", "6x − 15", "5x − 15", "6x + 15"], correct: 1,
+              exp: "Multiply the term outside by every term inside the bracket:<br>= 3 × 2x - 3 × 5<br>= 6x - 15" },
+            { q: "Expand and simplify: (x + 4)(x − 3)", options: ["x² + x − 12", "x² − x − 12", "x² + 7x − 12", "x² − 7x + 12"], correct: 0,
+              exp: "Use FOIL (First, Outer, Inner, Last):<br>= x(x) + x(-3) + 4(x) + 4(-3)<br>= x² - 3x + 4x - 12<br>= x² + x - 12" },
+            { q: "Factorise completely: 12a² − 8a", options: ["4a(3a − 2)", "2a(6a − 4)", "4(3a² − 2a)", "4a(3a + 2)"], correct: 0,
+              exp: "Find the Highest Common Factor (HCF) of 12 and 8, which is 4.<br>Find the HCF of a² and a, which is a.<br>Overall HCF = 4a.<br>4a(12a²÷4a - 8a÷4a) = 4a(3a - 2)." },
+            { q: "Which of the following is a factor of x² − 9 ?", options: ["x − 3 only", "x + 9", "(x − 3)(x + 3)", "x - 9"], correct: 2,
+              exp: "This is a 'Difference of Two Squares'.<br>Formula: a² - b² = (a - b)(a + b)<br>Here, a = x, b = 3.<br>So, x² - 3² = (x - 3)(x + 3)." },
+            { q: "Expand: (2x + 3)²", options: ["4x² + 9", "4x² + 6x + 9", "4x² + 12x + 9", "2x² + 12x + 9"], correct: 2,
+              exp: "(2x + 3)² means (2x + 3)(2x + 3)<br>= 2x(2x) + 2x(3) + 3(2x) + 3(3)<br>= 4x² + 6x + 6x + 9<br>= 4x² + 12x + 9" },
+            { q: "Factorise: x² + 7x + 12", options: ["(x + 3)(x + 4)", "(x + 6)(x + 2)", "(x − 3)(x − 4)", "(x + 12)(x + 1)"], correct: 0,
+              exp: "Find two numbers that multiply to 12 and add up to 7.<br>Factors of 12: (1,12), (2,6), (3,4).<br>3 + 4 = 7.<br>Therefore, (x + 3)(x + 4)." },
+            { q: "Simplify: 2(x + 3) − 3(x − 1)", options: ["−x + 9", "−x + 3", "x + 9", "5x + 3"], correct: 0,
+              exp: "Expand both brackets carefully, watching the negative sign:<br>= (2x + 6) - (3x - 3)<br>= 2x + 6 - 3x + 3<br>= 2x - 3x + 6 + 3<br>= -x + 9" },
+            
+            // --- BEARINGS ---
+            { q: `Study the diagram below. What is the three-figure bearing of Q from P? ${svgBearing1}`, options: ["025°", "065°", "155°", "295°"], correct: 1,
+              exp: "Bearings are always measured:<br>1. From the North line.<br>2. In a clockwise direction.<br>3. Written with 3 digits.<br>Angle is 65°, so bearing is 065°." },
+            { q: "A bearing of due West is written as:", options: ["090°", "180°", "270°", "360°"], correct: 2,
+              exp: "North = 000°<br>East = 090°<br>South = 180°<br>West = 270°" },
+            { q: "If the bearing of town B from town A is 130°, then the back-bearing (bearing of A from B) is:", options: ["310°", "050°", "230°", "320°"], correct: 0,
+              exp: "To find a back-bearing:<br>If original < 180°, add 180°.<br>If original > 180°, subtract 180°.<br>130° is < 180°, so: 130° + 180° = 310°." },
+            { q: "The bearing of Y from X is 230°. What is the bearing of X from Y?", options: ["050°", "130°", "310°", "140°"], correct: 0,
+              exp: "This is a back-bearing question.<br>Since 230° is greater than 180°, we subtract 180°.<br>230° - 180° = 050°." },
+            { q: "A ship travels 12 km due North, then 5 km due East. How far is it from its starting point?", options: ["17 km", "13 km", "11 km", "7 km"], correct: 1,
+              exp: "This forms a right-angled triangle. Use Pythagoras' theorem:<br>a² + b² = c²<br>12² + 5² = c²<br>144 + 25 = 169<br>c = √169 = 13 km." },
+            { q: "Three-figure bearings are always measured:", options: ["Clockwise from South", "Anti-clockwise from North", "Clockwise from North", "Anti-clockwise from East"], correct: 2,
+              exp: "By mathematical convention, bearings are always measured clockwise starting from True North." },
+
+            // --- ADVANCED INEQUALITIES (Previously short answer) ---
+            { q: "Solve the inequality: 2x + 7 ≤ 19", options: ["x ≤ 12", "x ≥ 6", "x ≤ 6", "x < 6"], correct: 2,
+              exp: "2x + 7 ≤ 19<br>2x ≤ 19 - 7<br>2x ≤ 12<br>x ≤ 12 ÷ 2<br>x ≤ 6" },
+            { q: "Find the range of values of y if 3(y − 2) > 2y + 1", options: ["y > 7", "y < 7", "y > 5", "y > -1"], correct: 0,
+              exp: "Expand first:<br>3y - 6 > 2y + 1<br>Group y terms on the left, numbers on the right:<br>3y - 2y > 1 + 6<br>y > 7" },
+            { q: "List all integers n such that −3 ≤ n < 2.", options: ["-3, -2, -1, 0, 1, 2", "-3, -2, -1, 0, 1", "-2, -1, 0, 1", "-2, -1, 0, 1, 2"], correct: 1,
+              exp: "The ≤ sign at -3 means -3 IS included.<br>The < sign at 2 means 2 is NOT included.<br>The integers are: -3, -2, -1, 0, 1." },
+            { q: "A pupil needs at least 50 marks to pass. She has 23 marks. Write and solve an inequality to find the minimum marks, m, she still needs.", options: ["m ≥ 27", "m > 27", "m ≤ 27", "m = 27"], correct: 0,
+              exp: "Current marks + marks needed ≥ 50<br>23 + m ≥ 50<br>m ≥ 50 - 23<br>m ≥ 27" },
+
+            // --- ADVANCED EXPANSIONS ---
+            { q: "Expand and simplify: (x + 5)(x − 2) − (x − 1)(x + 3)", options: ["x - 7", "x + 13", "-x - 7", "x - 13"], correct: 0,
+              exp: "Part 1: (x+5)(x-2) = x² - 2x + 5x - 10 = x² + 3x - 10<br>Part 2: (x-1)(x+3) = x² + 3x - 1x - 3 = x² + 2x - 3<br>Subtract: (x² + 3x - 10) - (x² + 2x - 3)<br>= x² + 3x - 10 - x² - 2x + 3<br>= (x²-x²) + (3x-2x) + (-10+3)<br>= x - 7" },
+            { q: "Factorise completely: 6x² + 9x", options: ["3x(2x + 3)", "x(6x + 9)", "3(2x² + 3x)", "3x(2x - 3)"], correct: 0,
+              exp: "HCF of 6 and 9 is 3.<br>HCF of x² and x is x.<br>Extract 3x:<br>3x(6x²÷3x + 9x÷3x)<br>= 3x(2x + 3)" },
+            { q: "Factorise: x² − 25", options: ["(x - 5)(x - 5)", "(x + 5)²", "(x - 5)(x + 5)", "x(x - 25)"], correct: 2,
+              exp: "This is a Difference of Two Squares.<br>x² - 5² = (x - 5)(x + 5)." },
+            { q: "Expand: (3x − 4)(2x + 1)", options: ["6x² - 5x - 4", "6x² + 5x - 4", "6x² - 11x - 4", "5x² - 5x - 4"], correct: 0,
+              exp: "Using FOIL:<br>First: 3x * 2x = 6x²<br>Outer: 3x * 1 = 3x<br>Inner: -4 * 2x = -8x<br>Last: -4 * 1 = -4<br>Combine: 6x² + 3x - 8x - 4 = 6x² - 5x - 4" },
+
+            // --- ADVANCED BEARINGS ---
+            { q: "A lighthouse L is on a bearing of 075° from a ship S. What is the bearing of S from L?", options: ["105°", "255°", "185°", "075°"], correct: 1,
+              exp: "This is a back-bearing.<br>Since 075° is less than 180°, we add 180°.<br>075° + 180° = 255°." },
+            { q: "Town A is 8 km due North of town C. Town B is 6 km due East of C. What is the distance AB?", options: ["14 km", "2 km", "10 km", "100 km"], correct: 2,
+              exp: "Drawing this gives a right-angled triangle at C.<br>AC = 8, BC = 6.<br>Using Pythagoras: AB² = 8² + 6²<br>AB² = 64 + 36 = 100<br>AB = √100 = 10 km." },
+            { q: "A walker sets off on a bearing of 320° for 5 km. She then turns and walks on a bearing of 050° for 5 km. What is her distance from the start?", options: ["5 km", "10 km", "√50 km (approx 7.1km)", "√20 km"], correct: 2,
+              exp: "Draw a North line at the turn. The interior angle between the 320° path and the 050° path is exactly 90°! (360-320 = 40. Alternate angle is 40. 40+50 = 90°).<br>Since it's a right-angled triangle with sides 5 and 5:<br>Dist² = 5² + 5² = 25 + 25 = 50<br>Dist = √50 ≈ 7.1 km." },
+            { q: "If A is (0,0), B is (0,10) and C is (10,10). What is the bearing of C from A?", options: ["090°", "045°", "135°", "315°"], correct: 1,
+              exp: "A is origin. C is 10 units East and 10 units North. This forms a right-angled isosceles triangle.<br>The angle from the North line (Y-axis) is 45°.<br>Bearing is 045°." },
+
+            // --- PROBLEM SOLVING (Structured) ---
+            { q: "A bag of sweets costs ₦x. Chidi buys 5 bags and spends less than ₦3500. Write this as an inequality.", options: ["5x ≤ 3500", "5x < 3500", "x < 3500", "5 + x < 3500"], correct: 1,
+              exp: "Cost of 1 bag = x.<br>Cost of 5 bags = 5x.<br>'Spends less than' means strictly less (<).<br>Therefore, 5x < 3500." },
+            { q: "Following the previous question (5x < 3500), what is the maximum whole-number cost for a bag of sweets?", options: ["₦699", "₦700", "₦701", "₦600"], correct: 0,
+              exp: "Solve: 5x < 3500<br>x < 3500 ÷ 5<br>x < 700.<br>The cost must be strictly less than 700. The largest whole number less than 700 is 699." },
+            { q: "Solve the compound inequality: −1 < 3x + 2 ≤ 14", options: ["-1 < x ≤ 4", "-3 < x ≤ 12", "-1 < x ≤ 12", "0 < x < 4"], correct: 0,
+              exp: "-1 < 3x + 2 ≤ 14<br>Subtract 2 from all parts:<br>-1 - 2 < 3x ≤ 14 - 2<br>-3 < 3x ≤ 12<br>Divide all parts by 3:<br>-1 < x ≤ 4." },
+            { q: "The length of a rectangle is (2x + 3) cm and its width is (x − 1) cm. Find its area when x = 4 cm.", options: ["22 cm²", "33 cm²", "14 cm²", "11 cm²"], correct: 1,
+              exp: "Substitute x = 4 into length and width:<br>Length = 2(4) + 3 = 8 + 3 = 11 cm.<br>Width = 4 - 1 = 3 cm.<br>Area = Length × Width = 11 × 3 = 33 cm²." },
+            { q: "Factorise fully: 2x² − 18", options: ["2(x² - 9)", "(2x - 6)(x + 3)", "2(x - 3)(x + 3)", "2(x - 9)(x + 1)"], correct: 2,
+              exp: "Step 1: Take out common factor 2.<br>2(x² - 9)<br>Step 2: Recognize x² - 9 is a Difference of Two Squares.<br>= 2(x - 3)(x + 3)." },
+            { q: "Simplify: (x + 3)² − (x − 3)²", options: ["12x", "2x² + 18", "6x", "0"], correct: 0,
+              exp: "Expand both:<br>(x+3)² = x² + 6x + 9<br>(x-3)² = x² - 6x + 9<br>Subtract them: (x² + 6x + 9) - (x² - 6x + 9)<br>= x² + 6x + 9 - x² + 6x - 9<br>= 12x" },
+            { q: "Two ships leave port P. Ship A travels 10 km on bearing 060°. Ship B travels 10 km on bearing 120°. What is the distance AB?", options: ["20 km", "10 km", "14.1 km", "5 km"], correct: 1,
+              exp: "Angle between paths = 120° - 60° = 60°.<br>Sides PA = 10, PB = 10. Since two sides are equal and the angle between them is 60°, this forms an equilateral triangle!<br>Therefore, the third side AB must also be 10 km." },
+            { q: "A surveyor measures point X on bearing 040° (50m) and point Y on bearing 130° (50m). What is the straight line distance XY?", options: ["100 m", "50 m", "√5000 m", "75 m"], correct: 2,
+              exp: "Angle between X and Y = 130° - 40° = 90°.<br>This forms a right-angled triangle with sides 50m and 50m.<br>Pythagoras: XY² = 50² + 50² = 2500 + 2500 = 5000.<br>XY = √5000 m (approx 70.7m)." }
+        ];
+
+        // Let's render them to the DOM.
+        const wrapper = document.getElementById('questions-wrapper');
+
+        examQuestions.forEach((qObj, index) => {
+            const qNum = index + 1;
+            
+            // Build options HTML
+            const optionsHTML = qObj.options.map((opt, optIndex) => `
+                <label class="option-label flex items-center gap-4 cursor-pointer p-4 rounded-2xl border-2 border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 bg-slate-50 transition-all">
+                    <input type="radio" name="q${qNum}" value="${optIndex}">
+                    <span class="font-semibold text-slate-700 text-lg">${['A', 'B', 'C', 'D'][optIndex]}. ${opt}</span>
+                </label>
+            `).join('');
+
+            // Build Card
+            const cardHTML = `
+                <div class="question-card bg-white p-6 md:p-10 rounded-[2rem] shadow-sm border-2 border-indigo-100" id="card-q${qNum}">
+                    <div class="flex gap-4 mb-6">
+                        <div class="font-quicksand font-bold text-indigo-300 text-2xl">${qNum}.</div>
+                        <div class="font-semibold text-xl text-indigo-950 w-full">${qObj.q}</div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pl-8 md:pl-10">
+                        ${optionsHTML}
+                    </div>
+                    <!-- Handwriting Explanation Box -->
+                    <div class="explanation-box" id="exp-q${qNum}">
+                        <div class="flex items-center gap-2 mb-2 text-indigo-600">
+                            <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                            <p class="text-sm font-bold uppercase tracking-wider font-quicksand mt-1">Teacher's Note</p>
+                        </div>
+                        <div class="handwriting">${qObj.exp}</div>
+                    </div>
+                </div>
+            `;
+            wrapper.innerHTML += cardHTML;
+        });
+
+        // Initialize icons after injecting questions
+        lucide.createIcons();
+
+        // App Logic
+        let timerInterval;
+        let timeRemaining = 3600; // 1 hour
+
+        function startExam() {
+            const nameInput = document.getElementById('student-name').value.trim();
+            if (!nameInput) {
+                alert('Oops! Please enter your name to begin.');
+                return;
+            }
+
+            document.getElementById('display-name').innerHTML = `<i data-lucide="user" class="w-3 h-3 inline-block -mt-1 mr-1"></i> Hi, ${nameInput}!`;
+            lucide.createIcons(); // render dynamic header icon
+            
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('exam-container').classList.remove('hidden');
+            
+            timerInterval = setInterval(updateTimer, 1000);
+            window.scrollTo(0, 0);
+        }
+
+        function updateTimer() {
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('timer').innerText = "00:00";
+                alert("Time is up! Your test is automatically submitting. ⏰");
+                submitExam();
+                return;
+            }
+            
+            timeRemaining--;
+            let mins = Math.floor(timeRemaining / 60);
+            let secs = timeRemaining % 60;
+            
+            document.getElementById('timer').innerText = `${mins < 10 ? '0'+mins : mins}:${secs < 10 ? '0'+secs : secs}`;
+            
+            if (timeRemaining < 300) {
+                document.getElementById('timer').classList.add('text-rose-500', 'animate-pulse');
+                document.getElementById('timer').classList.remove('text-violet-600');
+            }
+        }
+
+        function submitExam() {
+            clearInterval(timerInterval);
+            let score = 0;
+            const total = examQuestions.length;
+
+            examQuestions.forEach((qObj, index) => {
+                const qNum = index + 1;
+                const card = document.getElementById(`card-q${qNum}`);
+                const selected = document.querySelector(`input[name="q${qNum}"]:checked`);
+                const expBox = document.getElementById(`exp-q${qNum}`);
+                
+                // Show handwriting explanation
+                expBox.style.display = 'block';
+
+                if (selected) {
+                    const userAns = parseInt(selected.value);
+                    const isCorrect = userAns === qObj.correct;
+                    
+                    if (isCorrect) {
+                        score++;
+                        selected.parentElement.classList.add('bg-emerald-50', 'border-emerald-300', 'shadow-inner');
+                        selected.parentElement.querySelector('span').classList.add('text-emerald-700');
+                        selected.parentElement.insertAdjacentHTML('beforeend', '<i data-lucide="check-circle-2" class="w-6 h-6 ml-auto text-emerald-600 shrink-0"></i>');
+                    } else {
+                        // Mark wrong
+                        selected.parentElement.classList.add('bg-rose-50', 'border-rose-300');
+                        selected.parentElement.querySelector('span').classList.add('text-rose-700');
+                        selected.parentElement.insertAdjacentHTML('beforeend', '<i data-lucide="x-circle" class="w-6 h-6 ml-auto text-rose-600 shrink-0"></i>');
+                        // Highlight correct
+                        const correctLabel = card.querySelector(`input[value="${qObj.correct}"]`).parentElement;
+                        correctLabel.classList.add('bg-emerald-50', 'border-emerald-400');
+                        correctLabel.insertAdjacentHTML('beforeend', '<span class="ml-auto flex items-center gap-1 text-emerald-700 font-bold shrink-0"><i data-lucide="arrow-left" class="w-5 h-5"></i> Correct</span>');
+                    }
+                } else {
+                    // Unanswered
+                    const correctLabel = card.querySelector(`input[value="${qObj.correct}"]`).parentElement;
+                    correctLabel.classList.add('bg-amber-50', 'border-amber-400');
+                    correctLabel.insertAdjacentHTML('beforeend', '<span class="ml-auto flex items-center gap-1 text-amber-700 font-bold shrink-0"><i data-lucide="arrow-left" class="w-5 h-5"></i> Missed</span>');
+                }
+            });
+
+            // Lock inputs and hide submit buttons
+            document.querySelectorAll('input[type="radio"]').forEach(el => el.disabled = true);
+            document.getElementById('submit-btn-top').style.display = 'none';
+            document.getElementById('bottom-submit-section').style.display = 'none';
+
+            // Show results
+            document.getElementById('score-display').innerText = `${score}/${total}`;
+            const percentage = Math.round((score / total) * 100);
+            
+            // Icon feedback based on score
+            let iconHtml = '<i data-lucide="trophy" class="w-16 h-16 text-yellow-400"></i>';
+            let remark = "Outstanding!";
+            if (percentage < 50) { iconHtml = '<i data-lucide="dumbbell" class="w-16 h-16 text-rose-400"></i>'; remark = "Keep practicing, you've got this!"; }
+            else if (percentage < 70) { iconHtml = '<i data-lucide="thumbs-up" class="w-16 h-16 text-amber-500"></i>'; remark = "Good effort!"; }
+            else if (percentage < 90) { iconHtml = '<i data-lucide="flame" class="w-16 h-16 text-orange-500"></i>'; remark = "Awesome job!"; }
+            
+            document.getElementById('modal-emoji').innerHTML = iconHtml;
+            document.getElementById('percentage-display').innerText = `${percentage}% - ${remark}`;
+
+            // Re-render dynamically injected icons
+            lucide.createIcons();
+            
+            // Animate SVG ring
+            setTimeout(() => {
+                const ring = document.getElementById('score-ring');
+                const offset = 440 - (440 * percentage) / 100;
+                ring.style.strokeDashoffset = offset;
+                
+                // Change ring color based on score
+                if(percentage < 50) ring.style.stroke = '#f43f5e'; // rose
+                else if(percentage < 70) ring.style.stroke = '#f59e0b'; // amber
+                else ring.style.stroke = '#10b981'; // emerald
+            }, 100);
+
+            document.getElementById('results-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('results-modal').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
