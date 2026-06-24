@@ -175,6 +175,25 @@
 
         </div>
 
+        <!-- Confirmation Modal (Before Submission) -->
+        <div id="confirmation-modal" class="fixed inset-0 bg-indigo-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+            <div class="bg-white max-w-lg w-full rounded-[2.5rem] shadow-2xl p-8 md:p-10 text-center border-4 border-indigo-100">
+                <div class="flex justify-center mb-4 text-5xl">❓</div>
+                <h2 class="text-3xl font-quicksand font-extrabold text-indigo-900 mb-2">Ready to Submit?</h2>
+                <p class="text-slate-600 font-medium mb-2">You have answered <span id="answered-count">0</span> out of <span id="total-count">40</span> questions.</p>
+                <p class="text-slate-500 mb-8">Do you want to submit your test, or go back and review your answers?</p>
+                
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="closeConfirmation()" class="flex-1 flex justify-center items-center gap-2 font-quicksand bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-2xl transition-all border-2 border-slate-200">
+                        Review Answers <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="finalizeSubmit()" class="flex-1 flex justify-center items-center gap-2 font-quicksand bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-bold py-4 rounded-2xl transition-all shadow-md">
+                        Submit Test <i data-lucide="check" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Results Modal -->
         <div id="results-modal" class="fixed inset-0 bg-indigo-900/60 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
             <div class="bg-white max-w-lg w-full rounded-[2.5rem] shadow-2xl p-8 md:p-10 text-center border-4 border-indigo-100">
@@ -364,7 +383,7 @@
             // Build options HTML
             const optionsHTML = qObj.options.map((opt, optIndex) => `
                 <label class="option-label flex items-center gap-4 cursor-pointer p-4 rounded-2xl border-2 border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 bg-slate-50 transition-all">
-                    <input type="radio" name="q${qNum}" value="${optIndex}">
+                    <input type="radio" name="q${qNum}" value="${optIndex}" onchange="trackAnswers()">
                     <span class="font-semibold text-slate-700 text-lg">${['A', 'B', 'C', 'D'][optIndex]}. ${opt}</span>
                 </label>
             `).join('');
@@ -437,7 +456,38 @@
             }
         }
 
+        // Track user answers
+        let userAnswers = {};
+
+        function trackAnswers() {
+            examQuestions.forEach((qObj, index) => {
+                const qNum = index + 1;
+                const selected = document.querySelector(`input[name="q${qNum}"]:checked`);
+                if (selected) {
+                    userAnswers[qNum] = parseInt(selected.value);
+                }
+            });
+        }
+
         function submitExam() {
+            // Track all current answers before showing confirmation
+            trackAnswers();
+            
+            const answeredCount = Object.keys(userAnswers).length;
+            const totalCount = examQuestions.length;
+            
+            // Show confirmation modal
+            document.getElementById('answered-count').innerText = answeredCount;
+            document.getElementById('total-count').innerText = totalCount;
+            document.getElementById('confirmation-modal').classList.remove('hidden');
+        }
+
+        function closeConfirmation() {
+            document.getElementById('confirmation-modal').classList.add('hidden');
+        }
+
+        function finalizeSubmit() {
+            closeConfirmation();
             clearInterval(timerInterval);
             let score = 0;
             const total = examQuestions.length;
